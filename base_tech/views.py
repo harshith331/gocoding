@@ -62,42 +62,91 @@ def initialsignup(request):
             obj = RegUser.objects.get(pk=no)
             print(obj.first_name)
             response = {'error': '', 'found': 'true', 'phone_no': no, 'first_name': obj.first_name, 'email': obj.email,
-                        'last_name': obj.last_name}
+                        'last_name': obj.last_name, 'wallet_amt': obj.wallet_amt}
         except:
             print("hello")
             response = {'error': '', 'found': 'false', 'phone_no': no,
-                        'first_name': '', 'email': '', 'last_name': ''}
+                        'first_name': '', 'email': '', 'last_name': '', 'wallet_amt': '0'}
         return JsonResponse(response)
 
 
-class SignUp(APIView):
-    def post(self, request):
-        print("Inside signup")
-        response = JsonResponse({'Error': 'True'})
-        print("Inside POST")
-        serializer = RegUserSerializer(data=request.data)
-        response = {'success': 'false', 'error': 'invalid data'}
-        if serializer.is_valid():
-            serializer.save()
-            email_err = ""
-            phone_err = ""
-            err_msg = {'phone_no': phone_err, 'email': email_err}
-            response = {'success': 'true', 'error': err_msg}
+def validate_Email(email):
+    from django.core.exceptions import ValidationError
+    from django.core.validators import validate_email
+    try:
+        validate_email(email)
+    except ValidationError as e:
+        return False
+    else:
+        return True
+
+def SignUp(request):
+    if request.method=='POST':
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        response = {
+            'success': 'false',
+            'error_msg': {
+                'phone_no':'',
+                'email':''
+            }
+        }
+        if validate_Email(body['email']):
+            response['error_msg']['email'] = ''
+        else:
+            response['error_msg']['email'] = 'invalid email'
             return JsonResponse(response)
-        print(serializer.errors)
+
         try:
-            email_err = serializer.errors['email'][0]
-        except:
-            email_err = ""
+            r =  RegUser.objects.get(phone_no=body['phone_no'])
+            response['error_msg']['phone_no'] = 'account with this phone no already exists.'
+        except RegUser.DoesNotExist:
+            pass
         try:
-            phone_err = serializer.errors['phone_no'][0]
-        except:
-            phone_err = ""
-        err_msg = {'phone_no': phone_err, 'email': email_err}
-        response = {'success': 'false', 'error': err_msg}
+            r =  RegUser.objects.get(email=body['email'])
+            response['error_msg']['email'] = 'account with this email already exists.'
+        except  RegUser.DoesNotExist:
+            pass
+        
+        if response['error_msg']['phone_no'] != '' or response['error_msg']['email'] != '':
+            return JsonResponse(response)
+        else:   
+            r = RegUser(first_name=body['first_name'],
+                        last_name=body['last_name'],
+                        phone_no=body['phone_no'],
+                        email=body['email'])
+            r.save()
+            response['success'] = 'true'
         return JsonResponse(response)
-
-
+#
+#class SignUp(APIView):
+#    def post(self, request):
+#        print("Inside signup")
+#        response = JsonResponse({'Error': 'True'})
+#        print("Inside POST")
+#        serializer = RegUserSerializer(data=request.data)
+#        response = {'success': 'false', 'error': 'invalid data'}
+#        if serializer.is_valid():
+#            serializer.save()
+#            email_err = ""
+#            phone_err = ""
+#            err_msg = {'phone_no': phone_err, 'email': email_err}
+#            response = {'success': 'true', 'error': err_msg}
+#            return JsonResponse(response)
+#        print(serializer.errors)
+#        try:
+#            email_err = serializer.errors['email'][0]
+#        except:
+#            email_err = ""
+#        try:
+#            phone_err = serializer.errors['phone_no'][0]
+#        except:
+#            phone_err = ""
+#        err_msg = {'phone_no': phone_err, 'email': email_err}
+#        response = {'success': 'false', 'error': err_msg}
+#        return JsonResponse(response)
+#
+#
 # Signing in User
 # def loginuser(request):
 #     print("Inside login")
@@ -1600,8 +1649,8 @@ def get_completed_sorder_history(request):
                 delivery_times.append(boy.order_time)
             d["sorder_id"] = cust_sorders[i].sorder_id
             # print(d["sorder_id"])
-            d["delivery_time"] = cust_sorders[i].delivery_time
-            d["delivery_dates"] = cust_sorders[i].delivery_dates
+            d["cust_delivery_time"] = cust_sorders[i].delivery_time
+            d["cust_delivery_dates"] = cust_sorders[i].delivery_dates
             d["order_date"] = cust_sorders[i].order_date
             d["order_time"] = cust_sorders[i].order_time
             d["end_date"] = cust_sorders[i].end_date
@@ -1664,8 +1713,8 @@ def get_active_sorder_history(request):
                 delivery_times.append(boy.order_time)
             d["sorder_id"] = cust_sorders[i].sorder_id
             #print(d["sorder_id"])
-            d["delivery_time"] = cust_sorders[i].delivery_time
-            d["delivery_dates"] = cust_sorders[i].delivery_dates
+            d["cust_delivery_time"] = cust_sorders[i].delivery_time
+            d["cust_delivery_dates"] = cust_sorders[i].delivery_dates
             d["order_date"] = cust_sorders[i].order_date
             d["order_time"] = cust_sorders[i].order_time
             d["end_date"] = cust_sorders[i].end_date

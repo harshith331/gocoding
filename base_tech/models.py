@@ -9,8 +9,8 @@ class RegUser(models.Model):
     last_name = models.CharField(max_length=30)
     phone_no = models.CharField(primary_key=True, max_length=15)
     email = models.EmailField(max_length=255)
-    password = models.CharField(max_length=255)
     customer_fcm_token = models.CharField(max_length=500, default="")
+    wallet_amt = models.PositiveIntegerField(default=0)
 
 
 class Category(models.Model):

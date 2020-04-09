@@ -92,22 +92,26 @@ def check_delivery_boy(request):
 
 def activate_delboy(request):
     if request.method == 'POST':
-        obj = Delivery_Boys.objects.get(phone_no=request.POST['delboy_phone'])
-        if request.POST['status'] == 'active':
-            obj.status = 'A'
-            obj.save()
-        else:
-            obj.status = 'I'
-            obj.save()
-        response = {
-            'delboy_phone': request.POST['delboy_phone'],
-            'success': 'true'
-        }
-        return JsonResponse(response)
-    response = {
-        'delboy_phone': request.POST['delboy_phone'],
-        'success': 'false'
-    }
+        try:
+            obj = Delivery_Boys.objects.get(phone_no=request.POST['delboy_phone'])
+            if request.POST['status'] == 'active':
+                obj.status = 'A'
+                obj.save()
+            else:
+                obj.status = 'I'
+                obj.save()
+            response = {
+                'delboy_phone': request.POST['delboy_phone'],
+                'success': 'true',
+                'delboy_city': obj.city,
+                'delboy_address': obj.address
+            }
+            return JsonResponse(response)
+        except:
+            response = {
+                'delboy_phone': request.POST['delboy_phone'],
+                'success': 'false'
+            }
     return JsonResponse(response)
 
 

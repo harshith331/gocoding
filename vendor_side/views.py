@@ -88,6 +88,7 @@ def product_register(request):
 
 def check_vendor(request):
     if request.method == 'POST':
+        print ("Entered check_vendor()")
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
         try:
@@ -96,15 +97,19 @@ def check_vendor(request):
                 'vendor_phone': obj.phone_no,
                 'vendor_name': obj.name,
                 'vendor_id': body['vendor_id'],
-                'vendor_image': ord.vendor_imagepath.url,
-                'found': 'true'
+                'vendor_image': obj.vendor_imagepath.url,
+                'found': 'true',
+                'vendor_city': obj.city,
+                'vendor_address': obj.address
             }
         except:
             response = {
                 'vendor_phone': '',
                 'vendor_name': '',
-                'vendor_id': request.POST['vendor_id'],
-                'found': 'false'
+                'vendor_id': body['vendor_id'],
+                'found': 'false',
+                'vendor_city': '',
+                'vendor_address': ''
             }
         return JsonResponse(response)
     response = {
@@ -481,9 +486,9 @@ def order_history(request):
                                                    vendor_status='D')
             for vendor in vendor_subs:
                 delivery_boys = Deliverying_Boys_subs.objects.get(sorder_id=sorder.sorder_id, order_date=vendor.order_date)
-                delivery_phone.append(delivery_boys.phone_no.phone_no)
-                delivery_order_date.append(delivery_boys.order_date)
-                delivery_order_time.append(delivery_boys.order_time)
+                #delivery_phone.append(delivery_boys.phone_no.phone_no)
+                delivery_order_date.append(vendor.order_date)
+                delivery_order_time.append(vendor.order_time)
             d = {}
             d["sorder_id"] = sorder.sorder_id
             d["date"] = sorder.order_date
@@ -491,7 +496,7 @@ def order_history(request):
             d["delivery_dates"] = sorder.delivery_dates
             d["delivery_time"] = sorder.delivery_time
             #d["order_status"] = sorder.status
-            d["delivery_boy_phone"] = delivery_phone
+            #d["delivery_phone"] = delivery_phone
             d["delivery_order_date"] = delivery_order_date
             d["delivery_order_time"] = delivery_order_time
             # d["price"] = ord.price
