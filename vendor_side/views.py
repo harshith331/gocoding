@@ -884,7 +884,7 @@ def send_subscribed_order_items(request):
         vendor_phone = body['vendor_phone']
         sorder_items = Subscribed_Order_Items.objects.filter(
             sorder_id=sorder_id, vendor_phone=vendor_phone)
-        objs = Deliverying_Boys_subs.objects.filter(sorder_id=sorder_id, vendor_status='A',
+        objs = Deliverying_Boys_subs.objects.filter(sorder_id=sorder_id, status='A',
                                                     order_date__year=today.year,
                                                     order_date__month=today.month,
                                                     order_date__day=today.day).order_by('order_time')
@@ -894,14 +894,14 @@ def send_subscribed_order_items(request):
                 product_id=item.product_id)
             sorder = Subscribed_Orders.objects.filter(sorder_id=item.sorder_id)[0]
             d = {}
-            d['product_id'] = product.product_id
-            d['product_name'] = product.product_name
-            d['product_price'] = product.product_price
-            d['quantity'] = item.quantity
-            d['duration'] = sorder.duration
-            d['order_date'] = sorder.order_date
+            d['product_id']     = product.product_id
+            d['product_name']   = product.product_name
+            d['product_price']  = product.product_price
+            d['quantity']       = item.quantity
+            d['duration']       = sorder.duration
+            d['order_date']     = sorder.order_date
             d['delivery_dates'] = sorder.delivery_dates
-            d['delivery_time'] = sorder.delivery_time
+            d['delivery_time']  = sorder.delivery_time
             final.append(d)
         return JsonResponse({
             'items': final,
@@ -977,7 +977,7 @@ def order_ongoing(request):
                 print("no found")
                 continue
             delivery_boy_sub = Deliverying_Boys_subs.objects.get(
-                sorder_id=sorder.sorder_id, vendor_status='A',
+                sorder_id=sorder.sorder_id, status='A',
                 order_date__year=today.year,
                 order_date__month=today.month,
                 order_date__day=today.day
@@ -1106,9 +1106,6 @@ def order_ongoing(request):
             d["items"] = items
             print(myorders)
             myorders.append(d)
-
-
-
 
         return JsonResponse({
             'mysorders': mysorders,

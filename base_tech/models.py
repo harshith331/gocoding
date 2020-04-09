@@ -183,11 +183,6 @@ class Deliverying_Boys_subs(models.Model):
         choices=STATUS,
         default='A',
     )
-    VENDOR_STATUS = [
-        ('A', 'Active'),
-        ('I', 'Inactive')
-    ]
-    vendor_status = models.CharField(max_length=20, choices=VENDOR_STATUS, default='A')
     #otp = models.IntegerField(blank=True, default=0)
 
 
