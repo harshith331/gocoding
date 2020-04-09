@@ -74,7 +74,9 @@ def check_delivery_boy(request):
                 'del_boy_name': obj.name,
                 'del_boy_id': body['del_boy_id'],
                 'delivery_imagepath': obj.delivery_imagepath.url,
-                'found': 'true'
+                'found': 'true',
+                'delboy_city': obj.city,
+                'delboy_address': obj.address
             }
         except:
             response = {
@@ -92,16 +94,19 @@ def check_delivery_boy(request):
 
 def activate_delboy(request):
     if request.method == 'POST':
+        body = json.loads(
+            request.body.decode('utf-8')
+        )
         try:
-            obj = Delivery_Boys.objects.get(phone_no=request.POST['delboy_phone'])
-            if request.POST['status'] == 'active':
+            obj = Delivery_Boys.objects.get(phone_no=body['delboy_phone'])
+            if body['status'] == 'active':
                 obj.status = 'A'
                 obj.save()
             else:
                 obj.status = 'I'
                 obj.save()
             response = {
-                'delboy_phone': request.POST['delboy_phone'],
+                'delboy_phone': body['delboy_phone'],
                 'success': 'true',
                 'delboy_city': obj.city,
                 'delboy_address': obj.address
@@ -109,7 +114,7 @@ def activate_delboy(request):
             return JsonResponse(response)
         except:
             response = {
-                'delboy_phone': request.POST['delboy_phone'],
+                'delboy_phone': body['delboy_phone'],
                 'success': 'false'
             }
     return JsonResponse(response)

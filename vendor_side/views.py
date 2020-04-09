@@ -499,6 +499,7 @@ def order_history(request):
             #d["delivery_phone"] = delivery_phone
             d["delivery_order_date"] = delivery_order_date
             d["delivery_order_time"] = delivery_order_time
+            d["sorder_status"] = sorder.status
             # d["price"] = ord.price
             items = []
             products = []
@@ -981,13 +982,13 @@ def order_ongoing(request):
             except:
                 print("no found")
                 continue
-            delivery_boy_sub = Deliverying_Boys_subs.objects.get(
-                sorder_id=sorder.sorder_id, status='A',
-                order_date__year=today.year,
-                order_date__month=today.month,
-                order_date__day=today.day
-            )
-            delivery_boy = delivery_boy_sub.phone_no
+            #delivery_boy_sub = Deliverying_Boys_subs.objects.get(
+            #    sorder_id=sorder.sorder_id, status='A',
+            #    order_date__year=today.year,
+            #    order_date__month=today.month,
+            #    order_date__day=today.day
+            #)
+            #delivery_boy = delivery_boy_sub.phone_no
             # delivery_phone = []
             # delivery_order_date = []
             # delivery_order_time = []

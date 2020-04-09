@@ -1598,22 +1598,15 @@ def suscription_response(request):
         print("pending vr = ", new_pending_order)
         return JsonResponse({'success': 'Accepted'})
 
-
 def deliver_response(request):
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
         phone = body['phone_no']
-        order_id = body['order_id']
         accepted = int(body['accepted'])
         print(accepted)
         deli = Delivery_Boys.objects.get(phone_no=phone)
         if accepted == 1:
-            DeliveryBoyOrders.objects.create(
-                del_boy_no = phone,
-                order_id = order_id,
-                accepted = True
-            )
             deli.accepted_or_not = True
             deli.save()
             print(deli.accepted_or_not)
@@ -1622,6 +1615,30 @@ def deliver_response(request):
             deli.accepted_or_not = False
             deli.save()
             return JsonResponse({'success': 'not_accepted'})
+
+#def deliver_response(request):
+#    if request.method == 'POST':
+#        body_unicode = request.body.decode('utf-8')
+#        body = json.loads(body_unicode)
+#        phone = body['phone_no']
+#        order_id = body['order_id']
+#        accepted = int(body['accepted'])
+#        print(accepted)
+#        deli = Delivery_Boys.objects.get(phone_no=phone)
+#        if accepted == 1:
+#            DeliveryBoyOrders.objects.create(
+#                del_boy_no = phone,
+#                order_id = order_id,
+#                accepted = True
+#            )
+#            deli.accepted_or_not = True
+#            deli.save()
+#            print(deli.accepted_or_not)
+#            return JsonResponse({'success': 'Accepted'})
+#        else:
+#            deli.accepted_or_not = False
+#            deli.save()
+#            return JsonResponse({'success': 'not_accepted'})
 
 
 def get_completed_sorder_history(request):

@@ -131,6 +131,7 @@ class Delivery_Boys(models.Model):
     delboy_fcm_token = models.CharField(max_length=500, default="")
     delivery_imagepath = models.ImageField(
          default='toys.png', upload_to='images/')
+    parking_no = models.CharField(max_length=50)
 
 
 class Deliverying_Boys(models.Model):
@@ -170,7 +171,8 @@ class Subscribed_Orders(models.Model):
 
 class Deliverying_Boys_subs(models.Model):
     phone_no = models.ForeignKey(
-        Delivery_Boys, to_field='phone_no', on_delete=models.CASCADE)
+        Delivery_Boys, to_field='phone_no', on_delete=models.CASCADE
+    )
     sorder_id = models.CharField(max_length=500)
     order_date = models.DateField((u"Order date"), auto_now_add=True)
     order_time = models.TimeField((u"Order time"), auto_now_add=True)
@@ -263,6 +265,7 @@ class Order_Items(models.Model):
         ('N', 'Not Picked')
     ]
     delivery_status = models.CharField(max_length=20, choices=DELIVERY_STATUS, default='N')
+    delivered = models.BooleanField(default=False)
 
 
 # class iteminfo(models.Model):
