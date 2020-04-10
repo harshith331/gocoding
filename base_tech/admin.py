@@ -10,7 +10,7 @@ class Order_ItemsAdmin(admin.ModelAdmin):
 class Subscribed_Order_ItemsAdmin(admin.ModelAdmin):
     list_display = ('sorder_id', 'product_id', 'quantity', 'vendor_phone')
     list_display_links = ('sorder_id',)
-    list_filter = ('vendor_phone',)
+    list_filter = ('product_id',)
 
 class Deliverying_Boys_subsAdmin(admin.ModelAdmin):
     list_display = ('phone_no', 'sorder_id', 'order_date')
