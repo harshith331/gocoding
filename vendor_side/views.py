@@ -48,6 +48,7 @@ def vendor_register(request):
             vendor_lat=body['vendor_lat'],
             vendor_long=body['vendor_long'],
             city=body['city'],
+            status='I',
             cell=cell,
             geoha=geo,
             busy=False,
@@ -100,7 +101,9 @@ def check_vendor(request):
                 'vendor_image': obj.vendor_imagepath.url,
                 'found': 'true',
                 'vendor_city': obj.city,
-                'vendor_address': obj.address
+                'vendor_address': obj.address,
+                'vendor_lat': obj.vendor_lat,
+                'vendor_long': obj.vendor_long
             }
         except:
             response = {
@@ -379,6 +382,7 @@ def order_history(request):
 
         for order_id in order_ids:
             ord = Orders.objects.get(order_id=order_id)
+            print (f"Order ID : {order_id}")
             d = {}
             d["order_id"] = order_id
             d["time"] = ord.order_time
@@ -395,7 +399,7 @@ def order_history(request):
             #     imageurl = CategorizedProducts.objects.get(
             #         product_id=products[0].product_id).product_imagepath.url
             # d["image"] = imageurl
-            # print("products", products)
+            print(f"Accepted Products : {products}")
             for product in products:
                 obj = CategorizedProducts.objects.get(
                     product_id=product.product_id)
@@ -426,6 +430,9 @@ def order_history(request):
                 items.append(produ)
             d["items"] = items
 
+            print ()
+            print (f"Items : {items}\n")
+
             rejected_items = []
             products = list(prev_orders.objects.filter(status='R',
                 vendor_phone=body['vendor_phone'], order_id=order_id))
@@ -436,22 +443,22 @@ def order_history(request):
             #     imageurl = CategorizedProducts.objects.get(
             #         product_id=products[0].product_id).product_imagepath.url
             # d["image"] = imageurl
-            print("products", products)
+            print()
+            print(f"Rejected Products : {products}\n")
             for product in products:
                 obj = CategorizedProducts.objects.get(
                     product_id=product.product_id)
                 prod = Order_Items.objects.filter(
                     product_id=product.product_id).first()
-                if product.product_id == "0":
-                    continue
-
+                #if product.product_id == "0":
+                #    continue
                 print("product_id", product.product_id)
                 print("prod", prod)
                 print("obj", obj)
-                if product.status == "A":
-                    check = True
-                else:
-                    check = False
+                #if product.status == "A":
+                #    check = True
+                #else:
+                #    check = False
                 produ = {
                     'prod_id': obj.product_id,
                     'prod_name': obj.product_name,
@@ -466,13 +473,19 @@ def order_history(request):
                 }
                 rejected_items.append(produ)
             d["rejected_items"] = items
+            #d["rejected_items"] = rejected_items
 
 
             #print("orders", myorders)
             myorders.append(d)
+        print ()
+        print(f"Rejected Items : {rejected_items}\n")
+        print ()
+        print(f"Orders : {myorders}\n\n", '-'*40)
 
-        print("orders", myorders)
+        print ("\nSorders\n")
         for sorder in sorders:
+            print(f"Sorder : {sorder}\n")
             # delivery_boys = Deliverying_Boys_subs.objects.filter(
             #     sorder_id=sorder.sorder_id, vendor_status='I').order_by('-order_date', '-order_time')
             delivery_phone = []
@@ -484,11 +497,18 @@ def order_history(request):
             #     delivery_order_time.append(boy.order_time)
             vendor_subs = Vendors_subs.objects.filter(sorder_id = sorder.sorder_id,
                                                    vendor_status='D')
+            print(f"vendor_subs : {vendor_subs}\nlooping over vendor_subs\n")
             for vendor in vendor_subs:
-                delivery_boys = Deliverying_Boys_subs.objects.get(sorder_id=sorder.sorder_id, order_date=vendor.order_date)
-                #delivery_phone.append(delivery_boys.phone_no.phone_no)
-                delivery_order_date.append(vendor.order_date)
-                delivery_order_time.append(vendor.order_time)
+                print (f"Vendor : {vendor}\nSorder.Sorder_ID : {sorder.sorder_id}\nVendor.order_date : {vendor.order_date}")
+                try:
+                    delivery_boys = Deliverying_Boys_subs.objects.get(sorder_id=sorder.sorder_id, order_date=vendor.order_date)
+                    #delivery_phone.append(delivery_boys.phone_no.phone_no)
+                    delivery_order_date.append(vendor.order_date)
+                    delivery_order_time.append(vendor.order_time)
+                except:
+                    print("skipping a deliverying boy since does not exists..........")
+                    continue
+            print ()
             d = {}
             d["sorder_id"] = sorder.sorder_id
             d["date"] = sorder.order_date
@@ -506,12 +526,15 @@ def order_history(request):
             for product in sorder_items:
                 if product.sorder_id == sorder.sorder_id:
                     products.append(product)
+            print (f"Sorder Products : {products}")
             for product in products:
                 obj = CategorizedProducts.objects.get(
                     product_id=product.product_id)
                 prod = Order_Items.objects.filter(
                     product_id=product.product_id).first()
-                print("obj", obj)
+                print (f"\nProduct : {product}\nProduct_ID : {product.product_id}")
+                print("obj : ", obj)
+                print("prod : ", prod)
 
                 prod = {
                     'prod_id': obj.product_id,
@@ -525,6 +548,41 @@ def order_history(request):
                 }
                 items.append(prod)
             d["items"] = items
+
+            rejected_items = []
+            products = list(prev_orders.objects.filter(status='R',
+                vendor_phone=body['vendor_phone'], order_id=sorder.sorder_id))
+            print()
+            print(f"Sorder Rejected Products : {products}\n")
+            for product in products:
+                obj = CategorizedProducts.objects.get(
+                    product_id=product.product_id)
+                prod = Order_Items.objects.filter(
+                    product_id=product.product_id).first()
+                #if product.product_id == "0":
+                #    continue
+
+                #print("product_id", product.product_id)
+                #print("prod", prod)
+                #print("obj", obj)
+                #if product.status == "A":
+                #    check = True
+                #else:
+                #    check = False
+                produ = {
+                    'prod_id': obj.product_id,
+                    'prod_name': obj.product_name,
+                    'prod_quan': prod.quantity,
+                    # 'prod_size': prod.size,
+                    'category_name': obj.under_category.categoryName,
+                    'category_id': obj.under_category.categoryId,
+                    'prod_price': obj.product_price,
+                    'prod_rating': obj.product_rating,
+                    'prod_desc': obj.product_descp,
+                    'check': check
+                }
+                rejected_items.append(produ)
+            d["rejected_items"] = rejected_items
             # print(myorders)
             mysorders.append(d)
         print("sorders", mysorders)

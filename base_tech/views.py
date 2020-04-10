@@ -1409,17 +1409,36 @@ def save_address(request):
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
         print(body['phone_no'])
+        try:
+            regUser = RegUser.objects.get(phone_no=str(body['phone_no']).strip())
+            print (f'RegUser : {regUser}')
+        except:
+            return JsonResponse({
+                'success': 'false',
+                'err_msg': f'User with phone_no:{body["phone_no"]} does not exists...'
+            })  
+
+        a = Addresses.objects.get(phone_no=regUser)
+        if str(a.category) == str(body["category"]).strip():
+            return JsonResponse({
+                'success': 'false',
+                'err_msg': f'Address with category:{body["category"]} already exists...'
+            })  
+
         Addresses.objects.create(
             address_id=address_id,
             address=body['address'],
             pincode=body['pincode'],
-            phone_no=RegUser.objects.get(phone_no=body['phone_no']),
+            phone_no=regUser,
             latitude=body['latitude'],
             longitude=body['longitude'],
             category=body['category'],
             city=body['city']
         )
-        return JsonResponse({"success":"true"})
+        return JsonResponse({
+            "success":"true",
+            "msg": f"Address with phone_no:{regUser} category:{body['category']} created."
+        })
 
 
 

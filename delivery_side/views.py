@@ -40,7 +40,7 @@ def delivery_register(request):
             phone_no=body['phone_no'],
             del_boy_id=body['del_boy_id'],
             address=body['address'],
-            status='A',
+            status='I',
             city=body['city'],
             total_no_orders=0,
             current_no_orders=0,
