@@ -500,7 +500,7 @@ def order_history(request):
             for vendor in vendor_subs:
                 print (f"Vendor : {vendor}\nSorder.Sorder_ID : {sorder.sorder_id}\nVendor.order_date : {vendor.order_date}")
                 try:
-                    delivery_boys = Deliverying_Boys_subs.objects.get(sorder_id=sorder.sorder_id, order_date=vendor.order_date)
+                    # delivery_boys = Deliverying_Boys_subs.objects.get(sorder_id=sorder.sorder_id, order_date=vendor.order_date)
                     #delivery_phone.append(delivery_boys.phone_no.phone_no)
                     delivery_order_date.append(vendor.order_date)
                     delivery_order_time.append(vendor.order_time)
@@ -555,8 +555,8 @@ def order_history(request):
             for product in products:
                 obj = CategorizedProducts.objects.get(
                     product_id=product.product_id)
-                prod = Order_Items.objects.filter(
-                    product_id=product.product_id).first()
+                # prod = Order_Items.objects.filter(
+                #     product_id=product.product_id).first()
                 #if product.product_id == "0":
                 #    continue
 
@@ -570,14 +570,13 @@ def order_history(request):
                 produ = {
                     'prod_id': obj.product_id,
                     'prod_name': obj.product_name,
-                    'prod_quan': prod.quantity,
+                    # 'prod_quan': prod.quantity,
                     # 'prod_size': prod.size,
                     'category_name': obj.under_category.categoryName,
                     'category_id': obj.under_category.categoryId,
                     'prod_price': obj.product_price,
                     'prod_rating': obj.product_rating,
                     'prod_desc': obj.product_descp,
-                    'check': check
                 }
                 rejected_items.append(produ)
             d["rejected_items"] = rejected_items

@@ -777,7 +777,8 @@ def get_checkpoint_details(request):
         checkpoint_address = primary_vendor.address
         order_items = Order_Items.objects.filter(order_id=order_id)
         print(order_items)
-        primary_boy_number = order_items.get(delboy_type='P').delivery_boy_phone.phone_no
+        # primary_boy_number = order_items.get(delboy_type='P').delivery_boy_phone.phone_no
+        primary_boy_number = order_items.filter(delboy_type='P').first().delivery_boy_phone.phone_no
         print(primary_boy_number)
 
         phones = []
