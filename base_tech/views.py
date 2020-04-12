@@ -90,17 +90,16 @@ def SignUp(request):
                 'email':''
             }
         }
-        try:
-            r =  RegUser.objects.get(phone_no=body['phone_no'])
-            response['error_msg']['phone_no'] = 'account with this phone no already exists.'
-        except RegUser.DoesNotExist:
-            pass
+        if validate_Email(body['email']):
+            response['error_msg']['email'] = ''
+        else:
+            response['error_msg']['email'] = 'invalid email'
+            return JsonResponse(response)
         try:
             r =  RegUser.objects.get(email=body['email'])
             response['error_msg']['email'] = 'account with this email already exists.'
         except  RegUser.DoesNotExist:
             pass
-        
         if response['error_msg']['phone_no'] != '' or response['error_msg']['email'] != '':
             return JsonResponse(response)
         else:   
