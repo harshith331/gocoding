@@ -412,10 +412,10 @@ def order_history(request):
                 print("product_id", product.product_id)
                 print("prod", prod)
                 print("obj", obj)
-                if product.status == "A":
-                    check = True
-                else:
-                    check = False
+                #if product.status == "A":
+                #    check = True
+                #else:
+                #    check = False
                 produ = {
                     'prod_id': obj.product_id,
                     'prod_name': obj.product_name,
@@ -426,7 +426,7 @@ def order_history(request):
                     'prod_price': obj.product_price,
                     'prod_rating': obj.product_rating,
                     'prod_desc': obj.product_descp,
-                    'check': check
+                    #'check': check
                 }
                 items.append(produ)
             d["items"] = items
@@ -449,8 +449,8 @@ def order_history(request):
             for product in products:
                 obj = CategorizedProducts.objects.get(
                     product_id=product.product_id)
-                prod = Order_Items.objects.filter(
-                    product_id=product.product_id).first()
+                #prod = Order_Items.objects.filter(
+                #   product_id=product.product_id).first()
                 #if product.product_id == "0":
                 #    continue
                 print("product_id", product.product_id)
@@ -463,14 +463,14 @@ def order_history(request):
                 produ = {
                     'prod_id': obj.product_id,
                     'prod_name': obj.product_name,
-                    'prod_quan': prod.quantity,
+                    #'prod_quan': prod.quantity,
                     # 'prod_size': prod.size,
                     'category_name': obj.under_category.categoryName,
                     'category_id': obj.under_category.categoryId,
                     'prod_price': obj.product_price,
                     'prod_rating': obj.product_rating,
                     'prod_desc': obj.product_descp,
-                    'check': check
+                    #'check': check
                 }
                 rejected_items.append(produ)
             d["rejected_items"] = rejected_items

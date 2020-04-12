@@ -1725,14 +1725,14 @@ def save_address(request):
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
         print(body['phone_no'])
-        # try:
-        #     regUser = RegUser.objects.get(phone_no=str(body['phone_no']).strip())
-        #     print (f'RegUser : {regUser}')
-        # except:
-        #     return JsonResponse({
-        #         'success': 'false',
-        #         'err_msg': f'User with phone_no:{body["phone_no"]} does not exists...'
-        #     })  
+        try:
+            regUser = RegUser.objects.get(phone_no=str(body['phone_no']).strip())
+            print (f'RegUser : {regUser}')
+        except:
+            return JsonResponse({
+                'success': 'false',
+                'err_msg': f'User with phone_no:{body["phone_no"]} does not exists...'
+            })  
 
         # a = Addresses.objects.get(phone_no=regUser)
         # if str(a.category) == str(body["category"]).strip():
@@ -2153,3 +2153,12 @@ def get_customer_details(request):
             'email': user.email
         }
         return JsonResponse(data)
+
+def save_razorpay(request):
+    if request.method == 'POST':
+        body = json.loads(request.body.decode('utf-8'))
+        print (f"Request Method Body : {body}")
+        return JsonResponse({
+            'success': True,
+            'body'   : body
+        })

@@ -62,6 +62,7 @@ urlpatterns = [
     path('send_saved_address/', views.send_saved_address, name='send_saved_address'),
     path('halt_subs/', views.halt_subscription, name='halt_subs'),
     path('get_customer_details/', views.get_customer_details, name='get_customer_details'),
+    path('save_razorpay/', views.save_razorpay, name='save_razorpay'),
 ]
 
 urlpatterns = format_suffix_patterns(urlpatterns)
