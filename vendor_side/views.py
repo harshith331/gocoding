@@ -362,7 +362,7 @@ def order_history(request):
         details = []
         # print(request.POST.get('vendor_phone'))
         order_details = list(prev_orders.objects.filter(order_status='D',
-                                                        status='A', vendor_phone=body['vendor_phone']))
+                                                        vendor_phone=body['vendor_phone']))
         print("order_details", order_details)
         order_ids = []
         for order_detail in order_details:
@@ -381,14 +381,14 @@ def order_history(request):
         mysorders = []
 
         for order_id in order_ids:
-            ord = Orders.objects.get(order_id=order_id)
+            ords = Orders.objects.get(order_id=order_id)
             print (f"Order ID : {order_id}")
             d = {}
             d["order_id"] = order_id
-            d["time"] = ord.order_time
-            d["date"] = ord.order_date
+            d["time"] = ords.order_time
+            d["date"] = ords.order_date
             #d["order_status"] = ord.order_status
-            d["price"] = ord.price
+            d["price"] = ords.price
             items = []
             products = list(prev_orders.objects.filter(status='A',
                 vendor_phone=body['vendor_phone'], order_id=order_id))
@@ -472,7 +472,7 @@ def order_history(request):
                     'check': check
                 }
                 rejected_items.append(produ)
-            d["rejected_items"] = items
+            d["rejected_items"] = rejected_items
             #d["rejected_items"] = rejected_items
 
 
@@ -482,7 +482,6 @@ def order_history(request):
         print(f"Rejected Items : {rejected_items}\n")
         print ()
         print(f"Orders : {myorders}\n\n", '-'*40)
-
         print ("\nSorders\n")
         for sorder in sorders:
             print(f"Sorder : {sorder}\n")
@@ -496,7 +495,7 @@ def order_history(request):
             #     delivery_order_date.append(boy.order_date)
             #     delivery_order_time.append(boy.order_time)
             vendor_subs = Vendors_subs.objects.filter(sorder_id = sorder.sorder_id,
-                                                   vendor_status='D')
+                                                   vendor_status='D',phone_no=body['vendor_phone'])
             print(f"vendor_subs : {vendor_subs}\nlooping over vendor_subs\n")
             for vendor in vendor_subs:
                 print (f"Vendor : {vendor}\nSorder.Sorder_ID : {sorder.sorder_id}\nVendor.order_date : {vendor.order_date}")
@@ -530,8 +529,7 @@ def order_history(request):
             for product in products:
                 obj = CategorizedProducts.objects.get(
                     product_id=product.product_id)
-                prod = Order_Items.objects.filter(
-                    product_id=product.product_id).first()
+                quant=product.quantity
                 print (f"\nProduct : {product}\nProduct_ID : {product.product_id}")
                 print("obj : ", obj)
                 print("prod : ", prod)
