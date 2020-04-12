@@ -2154,6 +2154,23 @@ def get_customer_details(request):
         }
         return JsonResponse(data)
 
+def create_order(request):
+    if request.method == "POST":
+        import razorpay
+        client = razorpay.Client(auth=("rzp_test_0cbeOIhWnD1OsK", "9GYf6yXqIm82douIRinpdcvC"))
+        body = json.loads(request.body.decode('utf-8'))
+        DATA = {
+            'amount': int(body['order_amt']) * 100,
+            'currency': 'INR',
+            'receipt': f"orderReceipt_{uuid.uuid4()}"[:40],
+        }
+        response = client.order.create(data=DATA)
+
+        return JsonResponse({
+            'success': 'true',
+            'razorpay_response': response
+        })
+
 def save_razorpay(request):
     if request.method == 'POST':
         body = json.loads(request.body.decode('utf-8'))
