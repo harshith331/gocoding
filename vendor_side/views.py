@@ -1173,3 +1173,20 @@ def order_ongoing(request):
             'mysorders': mysorders,
             'myorders': myorders
         })
+
+def order_ongoing_alt(request):
+    if request.method == 'POST':
+        today = datetime.today()
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        vendor_phone = body['vendor_phone']
+        mysorders = []
+        myorders = []
+
+        myorders=prev_orders.filter(vendor_phone=vendor_phone,order_type='N',status='A',order_status='A')
+        mysorders=prev_orders.filter(vendor_phone=vendor_phone,order_type='N',status='A',order_status='A')
+
+        return JsonResponse({
+            'mysorders': mysorders,
+            'myorders': myorders
+        })
