@@ -3,6 +3,11 @@ import uuid
 # Create your models here.
 class prev_orders(models.Model):
     order_id = models.CharField(primary_key=False, editable=True, default=uuid.uuid4, max_length=500)
+    TYPE=[
+        ('N','Normal'),
+        ('S','Subscribed')
+    ]
+    order_type=models.CharField(max_length=20, choices=TYPE,default='N')
     vendor_phone = models.CharField(max_length=500, blank=True, null=True)
     product_id = models.CharField(primary_key=False, editable=True,  max_length=256)
     STATUS = [

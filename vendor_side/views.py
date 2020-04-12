@@ -7,6 +7,7 @@ from pusher_push_notifications import PushNotifications
 from delivery_side.views import *
 import Geohash
 from django.utils.timezone import datetime
+from datetime import date
 
 pusher = Pusher(app_id=u'884349', key=u'7c495f369f4053064877',
                 secret=u'1f0f6089002fcb5d3ce1', cluster=u'ap2', ssl=True)
@@ -362,7 +363,7 @@ def order_history(request):
         details = []
         # print(request.POST.get('vendor_phone'))
         order_details = list(prev_orders.objects.filter(order_status='D',
-                                                        status='A', vendor_phone=body['vendor_phone']))
+                                                        vendor_phone=body['vendor_phone']))
         print("order_details", order_details)
         order_ids = []
         for order_detail in order_details:
@@ -381,14 +382,14 @@ def order_history(request):
         mysorders = []
 
         for order_id in order_ids:
-            ord = Orders.objects.get(order_id=order_id)
+            ords = Orders.objects.get(order_id=order_id)
             print (f"Order ID : {order_id}")
             d = {}
             d["order_id"] = order_id
-            d["time"] = ord.order_time
-            d["date"] = ord.order_date
+            d["time"] = ords.order_time
+            d["date"] = ords.order_date
             #d["order_status"] = ord.order_status
-            d["price"] = ord.price
+            d["price"] = ords.price
             items = []
             products = list(prev_orders.objects.filter(status='A',
                 vendor_phone=body['vendor_phone'], order_id=order_id))
@@ -472,17 +473,15 @@ def order_history(request):
                     'check': check
                 }
                 rejected_items.append(produ)
-            d["rejected_items"] = items
+            d["rejected_items"] = rejected_items
             #d["rejected_items"] = rejected_items
 
 
             #print("orders", myorders)
             myorders.append(d)
-        print ()
         print(f"Rejected Items : {rejected_items}\n")
         print ()
         print(f"Orders : {myorders}\n\n", '-'*40)
-
         print ("\nSorders\n")
         for sorder in sorders:
             print(f"Sorder : {sorder}\n")
@@ -496,12 +495,12 @@ def order_history(request):
             #     delivery_order_date.append(boy.order_date)
             #     delivery_order_time.append(boy.order_time)
             vendor_subs = Vendors_subs.objects.filter(sorder_id = sorder.sorder_id,
-                                                   vendor_status='D')
+                                                   vendor_status='D',phone_no=body['vendor_phone'])
             print(f"vendor_subs : {vendor_subs}\nlooping over vendor_subs\n")
             for vendor in vendor_subs:
                 print (f"Vendor : {vendor}\nSorder.Sorder_ID : {sorder.sorder_id}\nVendor.order_date : {vendor.order_date}")
                 try:
-                    delivery_boys = Deliverying_Boys_subs.objects.get(sorder_id=sorder.sorder_id, order_date=vendor.order_date)
+                    # delivery_boys = Deliverying_Boys_subs.objects.get(sorder_id=sorder.sorder_id, order_date=vendor.order_date)
                     #delivery_phone.append(delivery_boys.phone_no.phone_no)
                     delivery_order_date.append(vendor.order_date)
                     delivery_order_time.append(vendor.order_time)
@@ -530,8 +529,7 @@ def order_history(request):
             for product in products:
                 obj = CategorizedProducts.objects.get(
                     product_id=product.product_id)
-                prod = Order_Items.objects.filter(
-                    product_id=product.product_id).first()
+                quant=product.quantity
                 print (f"\nProduct : {product}\nProduct_ID : {product.product_id}")
                 print("obj : ", obj)
                 print("prod : ", prod)
@@ -539,7 +537,7 @@ def order_history(request):
                 prod = {
                     'prod_id': obj.product_id,
                     'prod_name': obj.product_name,
-                    'prod_quan': prod.quantity,
+                    'prod_quan': quant,
                     'category_name': obj.under_category.categoryName,
                     'category_id': obj.under_category.categoryId,
                     'prod_price': obj.product_price,
@@ -557,8 +555,8 @@ def order_history(request):
             for product in products:
                 obj = CategorizedProducts.objects.get(
                     product_id=product.product_id)
-                prod = Order_Items.objects.filter(
-                    product_id=product.product_id).first()
+                # prod = Order_Items.objects.filter(
+                #     product_id=product.product_id).first()
                 #if product.product_id == "0":
                 #    continue
 
@@ -572,14 +570,13 @@ def order_history(request):
                 produ = {
                     'prod_id': obj.product_id,
                     'prod_name': obj.product_name,
-                    'prod_quan': prod.quantity,
+                    # 'prod_quan': prod.quantity,
                     # 'prod_size': prod.size,
                     'category_name': obj.under_category.categoryName,
                     'category_id': obj.under_category.categoryId,
                     'prod_price': obj.product_price,
                     'prod_rating': obj.product_rating,
                     'prod_desc': obj.product_descp,
-                    'check': check
                 }
                 rejected_items.append(produ)
             d["rejected_items"] = rejected_items
@@ -1174,4 +1171,118 @@ def order_ongoing(request):
         return JsonResponse({
             'mysorders': mysorders,
             'myorders': myorders
+        })
+
+def order_ongoing_alt(request):
+    if request.method == 'POST':
+        today = datetime.today()
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        vendor_phone = body['vendor_phone']
+        mysorders = []
+        myorders = []
+
+        myorders=prev_orders.objects.filter(vendor_phone=vendor_phone,order_type='N',status='A',order_status='A')
+        mysorders=Vendors_subs.objects.filter(phone_no=vendor_phone,vendor_status='N')
+        order_id=[]
+        sorder_id=[]
+        orders=[]
+        sorders=[]
+
+        #                   #
+        # for normal orders #
+        #                   #
+        for item in myorders:
+           order_id.append(item.order_id)
+        order_id = unique(order_id)
+        
+        for oid in order_id:
+            oid=order_id[0]
+            ordr=Orders.objects.get(order_id=oid)
+            del_boy = Order_Items.objects.get(vendor_phone=body['vendor_phone'], order_id=oid)
+            #delivery_boy = del_boy_orders.delivery_boy_phone
+            d = {}
+            d["order_id"] = oid
+            d["time"] = ordr.order_time
+            d["date"] = ordr.order_date
+            d["price"] = ordr.price
+            d["delivery_boy_phone"] = del_boy.delivery_boy_phone.phone_no
+            d['otp'] = del_boy.otp
+            # if len(products) == 1:
+            #     imageurl = CategorizedProducts.objects.get(product_id=0).product_imagepath.url
+            # else:
+            #     imageurl = CategorizedProducts.objects.get(product_id=products[0].product_id).product_imagepath.url
+            #d["image"] = imageurl
+            items = []
+            for product in myorders.filter(order_id=oid):
+                obj = CategorizedProducts.objects.get(product_id=product.product_id)
+                prod = Order_Items.objects.get(product_id=product.product_id)
+                # if product.status == "A":
+                #     check = True
+                # else:
+                #     check = False
+                prod = {
+                    'prod_id': obj.product_id,
+                    'prod_name': obj.product_name,
+                    'prod_quan': prod.quantity,
+                    #'prod_size': prd.size,
+                    'category_name': obj.under_category.categoryName,
+                    'category_id': obj.under_category.categoryId,
+                    'prod_price': obj.product_price,
+                    # 'prod_rating': obj.product_rating,
+                    # 'prod_desc': obj.product_descp,
+                    # 'check': check
+                }
+                items.append(prod)
+            d["items"] = items
+            orders.append(d)
+
+        #                       #
+        # for subscribed orders #
+        #                       #        
+        for item in mysorders:
+           sorder_id.append(item.sorder_id)
+        sorder_id = unique(sorder_id)
+        for oid in sorder_id:
+            ordr=Subscribed_Orders.objects.get(sorder_id=oid,order_date=date.today())
+            del_boy = Deliverying_Boys_subs.objects.get(sorder_id=oid,order_date=date.today()).phone_no
+            d = {}
+            d["sorder_id"] = oid
+            d["time"] = ordr.order_time
+            d["date"] = ordr.order_date
+            d["delivery_boy_phone"] = del_boy.phone_no
+            products = list(prev_orders.objects.filter(vendor_phone=body['vendor_phone'], order_id=oid))
+            item_otp = Vendors_subs.objects.get(phone_no=body['vendor_phone'], sorder_id=oid,order_date=date.today())
+            otp = items_otp[0].otp
+            d['otp'] = otp
+            # if len(products) == 1:
+            #     imageurl = CategorizedProducts.objects.get(
+            #         product_id=0).product_imagepath.url
+            # else:
+            #     imageurl = CategorizedProducts.objects.get(
+            #         product_id=products[0].product_id).product_imagepath.url
+            #d["image"] = imageurl
+            items = []
+            for product in products:
+                obj = CategorizedProducts.objects.get(product_id=product.product_id)
+                prod = Subscribed_Order_Items.objects.filter(product_id=product.product_id,sorder_id=oid).first()
+                prod = {
+                    'prod_id': obj.product_id,
+                    'prod_name': obj.product_name,
+                    'prod_quan': prod.quantity,
+                    #'prod_size': prod.size,
+                    'category_name': obj.under_category.categoryName,
+                    'category_id': obj.under_category.categoryId,
+                    'prod_price': obj.product_price,
+                    # 'prod_rating': obj.product_rating,
+                    # 'prod_desc': obj.product_descp,
+                    # 'check': check
+                }
+                items.append(prod)
+            d["items"] = items
+            sorders.append(d)
+
+        return JsonResponse({
+            'mysorders': sorders,
+            'myorders': orders
         })

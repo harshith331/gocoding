@@ -57,16 +57,15 @@ def getaccess(request):
 
 def initialsignup(request):
     if request.method == 'POST':
-        no = request.POST['phone_no']
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        no = body['phone_no']
         try:
-            obj = RegUser.objects.get(pk=no)
-            print(obj.first_name)
-            response = {'error': '', 'found': 'true', 'phone_no': no, 'first_name': obj.first_name, 'email': obj.email,
-                        'last_name': obj.last_name, 'wallet_amt': obj.wallet_amt}
+            user = RegUser.objects.get(phone_no=no)
+            response = {'found': 'true', 'phone_no': no, 'first_name': user.first_name,'last_name': user.last_name, 
+            'email': user.email ,'wallet_amt': user.wallet_amt}
         except:
-            print("hello")
-            response = {'error': '', 'found': 'false', 'phone_no': no,
-                        'first_name': '', 'email': '', 'last_name': '', 'wallet_amt': '0'}
+            response = {'error': 'phone no not found', 'found': 'false','phone_no': no }
         return JsonResponse(response)
 
 
@@ -96,18 +95,11 @@ def SignUp(request):
         else:
             response['error_msg']['email'] = 'invalid email'
             return JsonResponse(response)
-
-        try:
-            r =  RegUser.objects.get(phone_no=body['phone_no'])
-            response['error_msg']['phone_no'] = 'account with this phone no already exists.'
-        except RegUser.DoesNotExist:
-            pass
         try:
             r =  RegUser.objects.get(email=body['email'])
             response['error_msg']['email'] = 'account with this email already exists.'
         except  RegUser.DoesNotExist:
             pass
-        
         if response['error_msg']['phone_no'] != '' or response['error_msg']['email'] != '':
             return JsonResponse(response)
         else:   
@@ -686,6 +678,330 @@ def cell_sort_sub(cells, cellpros, ar2, user_latitude, user_longitude, city, ord
     return new_order_products
 
 
+# def delivery_boy_assignment(vendor_assigned_list, cells, cell_distance, user_latitude, user_longitude, city, phone_no, order_id):
+#     cell_inside = []
+#     dist_inside = []
+#     max_u2d = 0
+#     #distance_sector = []
+#     final_vendor_cell = []
+#     print("insidecbcm")
+#     final_distance_cell = []
+#     # final_aol = []
+#     final_deliverBoy = []
+#     if (not len(firebase_admin._apps)):
+#         cred = credentials.Certificate("serviceAccountKey.json")
+#         firebase_admin.initialize_app(cred)
+#     db = firestore.client()
+#     deliveryBoy_list = list(Delivery_Boys.objects.filter(
+#         city__iexact=city, status="A"))  # busy="true"
+
+#     for boy in deliveryBoy_list:
+#         doc_rf = db.collection(u'DeliveryBoyLocation').document(
+#             u'{}'.format(boy.phone_no))
+#         doc = doc_rf.get()
+#         boy.lat = doc.to_dict()['geo_point'].latitude
+#         boy.long = doc.to_dict()['geo_point'].longitude
+#         # print("boy lat long", boy.lat, boy.long)
+#         boy.save()
+
+#     order = Orders.objects.get(order_id=order_id)
+#     # inside_2_km = 0
+#     # city = city, ))
+#     checkpoint_lat = user_latitude
+#     checkpoint_long = user_longitude
+#     # , status = 'I',busy = False))
+#     # print("deliveryBoy_list", deliveryBoy_list)
+#     min_checkpoint = 1000
+#     for cell, dist in zip(cells, cell_distance):
+#         # print(dist)
+#         if dist < 1:
+#             cell_inside.append(cell)
+#             # print("val_inside", cell_inside)
+#             dist_inside.append(dist)
+#             # cells.remove(cell)
+#             # cell_distance.remove(dist)
+#             # vendor aur unki distance aa gayi
+#         if(dist < min_checkpoint):
+#             min_checkpoint = dist
+#             pcell = cell
+#             ven = Vendors.objects.filter(cell=cell).first()
+#             checkpoint_lat = ven.vendor_lat
+#             checkpoint_long = ven.vendor_long
+#             primary_vendor = ven
+#             primary_vendor2 = ven.phone_no
+#             # if dist < 2:
+#             #     inside_2_km = 1
+#             # distance_sector.append(dist)
+#     for cell, dist in zip(cell_inside, dist_inside):
+#         cells.remove(cell)
+#         cell_distance.remove(dist)
+#     print(cells)
+#     order.primary_cell = pcell
+#     order.save()
+#     vens = Vendors.objects.all()
+#     if min_checkpoint > 2:
+#         for ven in vens:
+#             if geodistance2(user_latitude, user_longitude, ven.vendor_lat, ven.vendor_long) < 2 and geodistance2(user_latitude, user_longitude, ven.vendor_lat, ven.vendor_long) < min_checkpoint:
+#                 checkpoint_lat = ven.vendor_lat
+#                 checkpoint_long = ven.vendor_long
+#                 primary_vendor = ven
+#                 min_checkpoint = geodistance2(user_latitude, user_longitude,
+#                                               ven.vendor_lat, ven.vendor_long)
+#                 # inside_2_km = 1
+#     print("inside", cell_inside)
+#     # jo 1 km ke ander hai
+#     if(cells == []):
+#         # bacha hai
+#         max_distance = 0
+#         for v1, d1 in zip(cell_inside, dist_inside):
+#             if(d1 >= max_distance):
+#                 farthest_cell = v1
+#                 max_distance = d1
+#     # unme se farthest distance nikal li
+#         while True:
+#             firstmin = deliveryBoy_list[0]
+#             for i in range(0, len(deliveryBoy_list)):
+#                 if geodistance2(deliveryBoy_list[i].lat, deliveryBoy_list[i].long, farthest_cell.Cell_lat, farthest_cell.Cell_long) < geodistance2(firstmin.lat, firstmin.long, farthest_cell.Cell_lat, farthest_cell.Cell_long):
+#                     firstmin = deliveryBoy_list[i]
+#             val_cell = []
+#             val_name = []
+#             val_address = []
+#             val_lat = []
+#             val_long = []
+#             for ven in vendor_assigned_list:
+#                 if ven.cell in cell_inside:
+#                     val_cell.append(ven.cell)
+#                     val_name.append(ven.name)
+#                     val_address.append(ven.address)
+#                     val_lat.append(ven.vendor_lat)
+#                     val_long.append(ven.vendor_long)
+#             # print(firstmin)
+#             primaryBoy = firstmin
+#             print("firstmin", primaryBoy)
+#             data = {
+#                 "order_id": str(order_id),
+#                 "vendor_name": val_name,
+#                 "vendor_address": val_address,
+#                 "vendor_lat": val_lat,
+#                 "vendor_long": val_long,
+#                 "vendor_cell": val_cell,
+#                 "checkpoint_lat": checkpoint_lat,
+#                 "checkpoint_long": checkpoint_long,
+#                 "user_latitude": user_latitude,
+#                 "user_longitude": user_longitude,
+#                 "user_phone": phone_no,
+#                 "split": False,
+#                 "isprimary": True
+#             }
+#             print(data)
+#             send_delivery_order(data, primaryBoy.phone_no)
+#             print("waiting for 30 seconds")
+#             time.sleep(60)
+#             if primaryBoy.accepted_or_not == True:
+#                 break
+#         for v1 in cell_inside:
+#             final_vendor_cell.append(v1)
+#             final_deliverBoy.append(primaryBoy)
+#         return final_vendor_cell, final_deliverBoy, primaryBoy
+
+#     primary_boy_selected = 0
+#     # this_has_pcell = 0
+#     # print("delivery list", deliveryBoy_list)
+#     while True:
+#         count_sector = 0
+#         # print("delivery list", deliveryBoy_list)
+#         while True:
+#             max_u2d = 0
+#             if deliveryBoy_list == []:
+#                 for cell in reversed(cells):
+#                     cell_inside.append(cell)
+#                     cells.remove(cell)
+#                 break
+#             for vendor_cell, dist in zip(reversed(cells), reversed(cell_distance)):
+#                 # if vendor_cell in final_vendor_cell:
+#                 #     continue
+#                 count_sector = count_sector+1
+#                 print("vendor_cell", vendor_cell)
+#                 cells.remove(vendor_cell)
+#                 cell_distance.remove(dist)
+#                 max_u2c = dist
+#                 farthest_cell = vendor_cell
+
+#                 vendor_cell_sector = []
+#                 vendor_cell_dist = []
+#                 pos_v = []
+#                 neg_v = []
+#                 pos_d = []
+#                 neg_d = []
+#             # if vendor_cell == pcell:
+#             #     this_has_pcell = 1
+#                 for cell, d1 in zip(reversed(cells), reversed(cell_distance)):
+#                     # if (v1 not in final_vendor_cell):
+#                     #     if v1!=vendor_cell:
+#                     angle, sign = sector_check(vendor_cell.Cell_lat, vendor_cell.Cell_long,
+#                                                user_latitude, user_longitude, cell.Cell_lat, cell.Cell_long)
+#                     # print(angle, sign)
+#                     if abs(angle) < 30:
+#                         if sign == 0:
+#                             pos_v.append(cell)
+#                             pos_d.append(d1)
+#                         else:
+#                             neg_v.append(cell)
+#                             neg_d.append(d1)
+#                 if len(pos_v) > len(neg_v):
+#                     for v1, d1 in zip(pos_v, pos_d):
+#                         # print("inside if_poslen", v1)
+#                         vendor_cell_sector.append(v1)
+#                         vendor_cell_dist.append(d1)
+#                         cells.remove(v1)
+#                         cell_distance.remove(d1)
+#                         if(d1 > max_u2c):
+#                             max_u2c = d1
+#                             farthest_cell = v1
+
+#                 else:
+#                     for v1, d1 in zip(neg_v, neg_d):
+#                         # print("inside if_neglen", v1)
+#                         vendor_cell_sector.append(v1)
+#                         vendor_cell_dist.append(d1)
+#                         cells.remove(v1)
+#                         cell_distance.remove(d1)
+
+#                         if(d1 > max_u2c):
+#                             max_u2c = d1
+#                             farthest_cell = v1
+#                 print("vendor_cell_sector", vendor_cell_sector)
+#                 # print("farthest_cell", farthest_cell)
+#                 if deliveryBoy_list == []:
+#                     for cell in reversed(cells):
+#                         cell_inside.append(cell)
+#                         cells.remove(cell)
+#                     break
+#                 min = 10000
+#                 for boy in deliveryBoy_list:
+#                     d = geodistance2(
+#                         boy.lat, boy.long, farthest_cell.Cell_lat, farthest_cell.Cell_long)
+#                     if(d < min):
+#                         min = d
+#                         closestBoy = boy
+#                 # print(cells)
+#                 # print(closestBoy)
+#                 # print("dist+min", dist+min)
+#                 if (max_u2c+min) > max_u2d and primary_boy_selected == 0:
+#                     max_u2d = (max_u2c+min)
+#                     # print("min_u2d", max_u2d)
+#                     primaryBoy = closestBoy
+
+#                 for vcs, dista in zip(vendor_cell_sector, vendor_cell_dist):
+#                     final_deliverBoy.append(closestBoy)
+#                     final_vendor_cell.append(vcs)
+#                     final_distance_cell.append(dista)
+
+#                 final_deliverBoy.append(closestBoy)
+#                 final_vendor_cell.append(vendor_cell)
+#                 final_distance_cell.append(dist)
+#                 # print(deliveryBoy_list)
+#                 deliveryBoy_list.remove(closestBoy)
+#             if cells == []:
+#                 break
+#         # print("primary boy selected", primary_boy_selected)
+#         # print("primary boy", primaryBoy)
+#         if primary_boy_selected == 0:
+#             for v1, d1 in zip(cell_inside, dist_inside):
+#                 final_vendor_cell.append(v1)
+#                 final_distance_cell.append(d1)
+#                 final_deliverBoy.append(primaryBoy)
+#         print("before acc", final_vendor_cell)
+#         print("before acc", final_deliverBoy)
+#         # print(final_distance_cell)
+#         unique_deliver_boy = unique(final_deliverBoy)
+#         for boy in unique_deliver_boy:
+#             # indices = [i for i, x in enumerate(final_deliverBoy) if x == boy]
+#             # if boy.accepted_or_not == 0:
+#             vendor_list = []
+#             vendor_address = []
+#             vendor_lat = []
+#             vendor_long = []
+#             val_cell = []
+
+#             for boy2, cell in zip(final_deliverBoy, final_vendor_cell):
+#                 if boy == boy2:
+#                     for ven in vendor_assigned_list:
+#                         if ven.cell == cell:
+#                             vendor_list.append(ven.name)
+#                             vendor_address.append(ven.address)
+#                             vendor_lat.append(ven.vendor_lat)
+#                             vendor_long.append(ven.vendor_long)
+#                             val_cell.append(ven.cell)
+#             if boy == primaryBoy:
+#                 isprimary = True
+#                 primary_boy_selected = 1
+#             else:
+#                 isprimary = False
+#             data = {
+#                 "order_id": str(order_id),
+#                 "vendor_name": vendor_list,
+#                 "vendor_address": vendor_address,
+#                 "vendor_lat": vendor_lat,
+#                 "vendor_long": vendor_long,
+#                 "checkpoint_lat": checkpoint_lat,
+#                 "checkpoint_long": checkpoint_long,
+#                 "user_latitude": user_latitude,
+#                 "user_longitude": user_longitude,
+#                 "user_phone": phone_no,
+#                 "split": count_sector > 1,
+#                 "isprimary": isprimary,
+#                 "val_cell": val_cell
+#             }
+#             print("boy", boy)
+#             send_delivery_order(data, boy.phone_no)
+#             # print("data",data)
+#         # this_has_pcell = 0
+#         print("primary boy", primaryBoy)
+#         print("waiting for 30 seconds")
+#         time.sleep(60)
+#         flag = 0
+#         print("final", final_vendor_cell, "final", final_deliverBoy)
+#         fvc = []
+#         fdb = []
+#         fdc = []
+#         for boy2, cell, dist in zip(final_deliverBoy, final_vendor_cell, final_distance_cell):
+#             fdb.append(boy2)
+#             fvc.append(cell)
+#             fdc.append(dist)
+#         for boy2, cell, dist in zip(final_deliverBoy, final_vendor_cell, final_distance_cell):
+#             # print(boy2.accepted_or_not)
+#             boy3 = Delivery_Boys.objects.get(phone_no=boy2.phone_no)
+#             if boy3.accepted_or_not == False:
+#                 # print("boy3", boy3)
+#                 # print("primaryBoy", primaryBoy)
+#                 if boy3 == primaryBoy:
+#                     primary_boy_selected = 0
+#                 fdb.remove(boy3)
+#                 fvc.remove(cell)
+#                 fdc.remove(dist)
+#                 if cell not in cell_inside:
+#                     cells.append(cell)
+#                     cell_distance.append(dist)
+#                 flag = 1
+#             if boy3.accepted_or_not == False and deliveryBoy_list == []:
+#                 return [], [], boy3
+#         final_deliverBoy = fdb
+#         final_vendor_cell = fvc
+#         final_distance_cell = fdc
+#         if flag == 0:
+#             break
+#         print(cells)
+#         print(cell_distance)
+#     for cell in cell_inside:
+#         if cell not in final_vendor_cell:
+#             final_vendor_cell.append(cell)
+#             final_deliverBoy.append(primaryBoy)
+#     print("final2", final_vendor_cell, "final2", final_deliverBoy)
+#     print("checkpoint: ", checkpoint_lat, " ", checkpoint_long)
+#     return final_vendor_cell, final_deliverBoy, primaryBoy
+
+
 def delivery_boy_assignment(vendor_assigned_list, cells, cell_distance, user_latitude, user_longitude, city, phone_no, order_id):
     cell_inside = []
     dist_inside = []
@@ -703,14 +1019,14 @@ def delivery_boy_assignment(vendor_assigned_list, cells, cell_distance, user_lat
     deliveryBoy_list = list(Delivery_Boys.objects.filter(
         city__iexact=city, status="A"))  # busy="true"
 
-    for boy in deliveryBoy_list:
-        doc_rf = db.collection(u'DeliveryBoyLocation').document(
-            u'{}'.format(boy.phone_no))
-        doc = doc_rf.get()
-        boy.lat = doc.to_dict()['geo_point'].latitude
-        boy.long = doc.to_dict()['geo_point'].longitude
+    # for boy in deliveryBoy_list:
+        # doc_rf = db.collection(u'DeliveryBoyLocation').document(
+        #     u'{}'.format(boy.phone_no))
+        # doc = doc_rf.get()
+        # boy.lat = doc.to_dict()['geo_point'].latitude
+        # boy.long = doc.to_dict()['geo_point'].longitude
         # print("boy lat long", boy.lat, boy.long)
-        boy.save()
+        # boy.save()
 
     order = Orders.objects.get(order_id=order_id)
     # inside_2_km = 0
@@ -771,6 +1087,7 @@ def delivery_boy_assignment(vendor_assigned_list, cells, cell_distance, user_lat
             for i in range(0, len(deliveryBoy_list)):
                 if geodistance2(deliveryBoy_list[i].lat, deliveryBoy_list[i].long, farthest_cell.Cell_lat, farthest_cell.Cell_long) < geodistance2(firstmin.lat, firstmin.long, farthest_cell.Cell_lat, farthest_cell.Cell_long):
                     firstmin = deliveryBoy_list[i]
+            deliveryBoy_list.remove(firstmin)
             val_cell = []
             val_name = []
             val_address = []
@@ -804,8 +1121,9 @@ def delivery_boy_assignment(vendor_assigned_list, cells, cell_distance, user_lat
             print(data)
             send_delivery_order(data, primaryBoy.phone_no)
             print("waiting for 30 seconds")
-            time.sleep(60)
-            if primaryBoy.accepted_or_not == True:
+            time.sleep(30)
+            boy3 = Delivery_Boys.objects.get(phone_no=primaryBoy.phone_no)
+            if boy3.accepted_or_not == True:
                 break
         for v1 in cell_inside:
             final_vendor_cell.append(v1)
@@ -967,7 +1285,7 @@ def delivery_boy_assignment(vendor_assigned_list, cells, cell_distance, user_lat
         # this_has_pcell = 0
         print("primary boy", primaryBoy)
         print("waiting for 30 seconds")
-        time.sleep(60)
+        time.sleep(30)
         flag = 0
         print("final", final_vendor_cell, "final", final_deliverBoy)
         fvc = []
@@ -1009,7 +1327,6 @@ def delivery_boy_assignment(vendor_assigned_list, cells, cell_distance, user_lat
     print("checkpoint: ", checkpoint_lat, " ", checkpoint_long)
     return final_vendor_cell, final_deliverBoy, primaryBoy
 
-
 def create_vendor_assigned_list(order_id):
     print("calling vendor assigned list")
     print("order id:", order_id)
@@ -1021,7 +1338,6 @@ def create_vendor_assigned_list(order_id):
             ven.append(vendor)
     ven = unique(ven)
     return ven
-
 
 def create_vendor_assigned_list_sub(sorder_id):
     ven = []
