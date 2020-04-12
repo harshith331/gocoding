@@ -57,16 +57,15 @@ def getaccess(request):
 
 def initialsignup(request):
     if request.method == 'POST':
-        no = request.POST['phone_no']
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        no = body['phone_no']
         try:
-            obj = RegUser.objects.get(pk=no)
-            print(obj.first_name)
-            response = {'error': '', 'found': 'true', 'phone_no': no, 'first_name': obj.first_name, 'email': obj.email,
-                        'last_name': obj.last_name, 'wallet_amt': obj.wallet_amt}
+            user = RegUser.objects.get(phone_no=no)
+            response = {'found': 'true', 'phone_no': no, 'first_name': user.first_name,'last_name': user.last_name, 
+            'email': user.email ,'wallet_amt': user.wallet_amt}
         except:
-            print("hello")
-            response = {'error': '', 'found': 'false', 'phone_no': no,
-                        'first_name': '', 'email': '', 'last_name': '', 'wallet_amt': '0'}
+            response = {'error': 'phone no not found', 'found': 'false','phone_no': no }
         return JsonResponse(response)
 
 
@@ -91,12 +90,6 @@ def SignUp(request):
                 'email':''
             }
         }
-        if validate_Email(body['email']):
-            response['error_msg']['email'] = ''
-        else:
-            response['error_msg']['email'] = 'invalid email'
-            return JsonResponse(response)
-
         try:
             r =  RegUser.objects.get(phone_no=body['phone_no'])
             response['error_msg']['phone_no'] = 'account with this phone no already exists.'

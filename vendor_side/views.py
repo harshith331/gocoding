@@ -1189,6 +1189,7 @@ def order_ongoing_alt(request):
         sorder_id=[]
         orders=[]
         sorders=[]
+
         #                   #
         # for normal orders #
         #                   #
@@ -1214,18 +1215,14 @@ def order_ongoing_alt(request):
             otp = items[0].otp
             d['otp'] = otp
             if len(products) == 1:
-                imageurl = CategorizedProducts.objects.get(
-                    product_id=0).product_imagepath.url
+                imageurl = CategorizedProducts.objects.get(product_id=0).product_imagepath.url
             else:
-                imageurl = CategorizedProducts.objects.get(
-                    product_id=products[0].product_id).product_imagepath.url
+                imageurl = CategorizedProducts.objects.get(product_id=products[0].product_id).product_imagepath.url
             #d["image"] = imageurl
             items = []
             for product in products:
-                obj = CategorizedProducts.objects.get(
-                    product_id=product.product_id)
-                prod = Order_Items.objects.filter(
-                    product_id=product.product_id).first()
+                obj = CategorizedProducts.objects.get(product_id=product.product_id)
+                prod = Order_Items.objects.filter(product_id=product.product_id).first()
                 # if product.status == "A":
                 #     check = True
                 # else:
