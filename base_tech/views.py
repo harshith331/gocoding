@@ -1725,22 +1725,22 @@ def save_address(request):
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
         print(body['phone_no'])
-        try:
-            regUser = RegUser.objects.get(phone_no=str(body['phone_no']).strip())
-            print (f'RegUser : {regUser}')
-        except:
-            return JsonResponse({
-                'success': 'false',
-                'err_msg': f'User with phone_no:{body["phone_no"]} does not exists...'
-            })  
+        # try:
+        #     regUser = RegUser.objects.get(phone_no=str(body['phone_no']).strip())
+        #     print (f'RegUser : {regUser}')
+        # except:
+        #     return JsonResponse({
+        #         'success': 'false',
+        #         'err_msg': f'User with phone_no:{body["phone_no"]} does not exists...'
+        #     })  
 
-        a = Addresses.objects.get(phone_no=regUser)
-        if str(a.category) == str(body["category"]).strip():
-            return JsonResponse({
-                'success': 'false',
-                'err_msg': f'Address with category:{body["category"]} already exists...'
-            })  
-
+        # a = Addresses.objects.get(phone_no=regUser)
+        # if str(a.category) == str(body["category"]).strip():
+        #     return JsonResponse({
+        #         'success': 'false',
+        #         'err_msg': f'Address with category:{body["category"]} already exists...'
+        #     })  
+#add name to address
         Addresses.objects.create(
             address_id=address_id,
             address=body['address'],
@@ -1749,7 +1749,9 @@ def save_address(request):
             latitude=body['latitude'],
             longitude=body['longitude'],
             category=body['category'],
-            city=body['city']
+            city=body['city'],
+            name=body['name']
+
         )
         return JsonResponse({
             "success":"true",
@@ -2104,7 +2106,6 @@ def get_active_sorder_history(request):
         }
         return JsonResponse(data)
 
-
 def send_saved_address(request):
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
@@ -2120,6 +2121,7 @@ def send_saved_address(request):
             d['latitude'] = address.latitude
             d['category'] = address.category
             d['longitude'] = address.longitude
+            d['name']=  address.name
             final.append(d)
         return JsonResponse({
             'address': final

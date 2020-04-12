@@ -1197,7 +1197,6 @@ def order_ongoing_alt(request):
         order_id = unique(order_id)
         
         for oid in order_id:
-            oid=order_id[0]
             ordr=Orders.objects.get(order_id=oid)
             del_boy = Order_Items.objects.get(vendor_phone=body['vendor_phone'], order_id=oid)
             #delivery_boy = del_boy_orders.delivery_boy_phone

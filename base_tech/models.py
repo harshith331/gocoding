@@ -59,6 +59,7 @@ class Addresses(models.Model):
     longitude = models.FloatField()
     category = models.CharField(max_length=100)
     city = models.CharField(max_length=100)
+    name=models.CharField(max_length=100,default="name")
 
 
 class Cells(models.Model):
