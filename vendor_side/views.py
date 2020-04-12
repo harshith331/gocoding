@@ -537,7 +537,7 @@ def order_history(request):
                 prod = {
                     'prod_id': obj.product_id,
                     'prod_name': obj.product_name,
-                    'prod_quan': prod.quantity,
+                    'prod_quan': quant,
                     'category_name': obj.under_category.categoryName,
                     'category_id': obj.under_category.categoryId,
                     'prod_price': obj.product_price,
@@ -1183,10 +1183,122 @@ def order_ongoing_alt(request):
         mysorders = []
         myorders = []
 
-        myorders=prev_orders.filter(vendor_phone=vendor_phone,order_type='N',status='A',order_status='A')
-        mysorders=prev_orders.filter(vendor_phone=vendor_phone,order_type='N',status='A',order_status='A')
+        myorders=prev_orders.objects.filter(vendor_phone=vendor_phone,order_type='N',status='A',order_status='A')
+        mysorders=prev_orders.objects.filter(vendor_phone=vendor_phone,order_type='N',status='A',order_status='A')
+        order_id=[]
+        sorder_id=[]
+        orders=[]
+        sorders=[]
+        #                   #
+        # for normal orders #
+        #                   #
+        for item in myorders:
+           order_id.append(item.order_id)
+        order_id = unique(order_id)
+        
+        for oid in order_id:
+            ordr=Orders.objects.get(order_id=oid)
+            del_boy_orders = DeliveryBoyOrders.objects.get(order_id=oid)
+            delivery_boy = del_boy_orders.del_boy_no
+            d = {}
+            d["order_id"] = order_id
+            d["time"] = ordr.order_time
+            d["date"] = ordr.order_date
+            d["price"] = ordr.price
+            d["delivery_boy_phone"] = delivery_boy.phone_no
+            d["delivery_boy_name"] = delivery_boy.name
+
+            products = list(prev_orders.objects.filter(
+                vendor_phone=body['vendor_phone'], order_id=oid))
+            items = Order_Items.objects.filter(vendor_phone=body['vendor_phone'], order_id=oid)
+            otp = items[0].otp
+            d['otp'] = otp
+            if len(products) == 1:
+                imageurl = CategorizedProducts.objects.get(
+                    product_id=0).product_imagepath.url
+            else:
+                imageurl = CategorizedProducts.objects.get(
+                    product_id=products[0].product_id).product_imagepath.url
+            #d["image"] = imageurl
+            items = []
+            for product in products:
+                obj = CategorizedProducts.objects.get(
+                    product_id=product.product_id)
+                prod = Order_Items.objects.filter(
+                    product_id=product.product_id).first()
+                # if product.status == "A":
+                #     check = True
+                # else:
+                #     check = False
+                prod = {
+                    'prod_id': obj.product_id,
+                    'prod_name': obj.product_name,
+                    'prod_quan': prod.quantity,
+                    #'prod_size': prod.size,
+                    'category_name': obj.under_category.categoryName,
+                    'category_id': obj.under_category.categoryId,
+                    'prod_price': obj.product_price,
+                    # 'prod_rating': obj.product_rating,
+                    # 'prod_desc': obj.product_descp,
+                    # 'check': check
+                }
+                items.append(prod)
+            d["items"] = items
+            print(myorders)
+            orders.append(d)
+
+        #                       #
+        # for subscribed orders #
+        #                       #        
+        
+        for item in mysorders:
+           sorder_id.append(item.order_id)
+        sorder_id = unique(sorder_id)
+
+        for oid in sorder_id:
+            ordr=Subscribed_Orders.objects.get(sorder_id=oid)
+            del_boy_orders = DeliveryBoyOrders.objects.get(order_id=oid)
+            delivery_boy = del_boy_orders.del_boy_no
+            d = {}
+            d["sorder_id"] = oid
+            d["time"] = ordr.order_time
+            d["date"] = ordr.order_date
+            d["price"] = ordr.price
+            d["delivery_boy_phone"] = delivery_boy.phone_no
+            d["delivery_boy_name"] = delivery_boy.name
+
+            products = list(prev_orders.objects.filter(vendor_phone=body['vendor_phone'], order_id=oid))
+            items = Subscribed_Order_Items.objects.filter(vendor_phone=body['vendor_phone'], sorder_id=oid)
+            otp = items[0].otp
+            d['otp'] = otp
+            if len(products) == 1:
+                imageurl = CategorizedProducts.objects.get(
+                    product_id=0).product_imagepath.url
+            else:
+                imageurl = CategorizedProducts.objects.get(
+                    product_id=products[0].product_id).product_imagepath.url
+            #d["image"] = imageurl
+            items = []
+            for product in products:
+                obj = CategorizedProducts.objects.get(product_id=product.product_id)
+                prod = Subscribed_Order_Items.objects.filter(product_id=product.product_id).first()
+                prod = {
+                    'prod_id': obj.product_id,
+                    'prod_name': obj.product_name,
+                    'prod_quan': prod.quantity,
+                    #'prod_size': prod.size,
+                    'category_name': obj.under_category.categoryName,
+                    'category_id': obj.under_category.categoryId,
+                    'prod_price': obj.product_price,
+                    # 'prod_rating': obj.product_rating,
+                    # 'prod_desc': obj.product_descp,
+                    # 'check': check
+                }
+                items.append(prod)
+            d["items"] = items
+            sorders.append(d)
 
         return JsonResponse({
-            'mysorders': mysorders,
-            'myorders': myorders
+            'mysorders': sorders,
+            'myorders': orders
         })
