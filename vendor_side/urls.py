@@ -20,5 +20,6 @@ urlpatterns = [
     path('send_order_items/', views.send_order_items, name='send_order_items'),
     path('send_sorder_items/', views.send_subscribed_order_items, name='send_sorder_items'),
     path('product_register/', views.product_register, name='product_register'),
+    path('fcm_token_save/',views.fcm_token_save,name='fcm_token_save')
     #path('get_upcoming_subs_order/', views.get_upcoming_subs_order, name='get_upcoming_subs_order'),
 ]

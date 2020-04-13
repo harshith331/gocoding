@@ -1285,3 +1285,24 @@ def order_ongoing_alt(request):
             'mysorders': sorders,
             'myorders': orders
         })
+
+def fcm_token_save(request):
+    if request.method == 'POST':
+        today = datetime.today()
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        vendor_phone = body['vendor_phone']
+        try:
+            vendor=Vendors.objects.get(phone_no=vendor_phone)
+            vendor.vendor_fcm_token=body['vendor_fcm_token']
+            vendor.save()
+            return JsonResponse({
+                'response':"token save successful"
+            })
+        except:
+            return JsonResponse({
+                'response':"token save unsuccessful",
+                'error': "vendor dosent exist"
+            })
+            
+        
