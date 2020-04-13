@@ -179,7 +179,7 @@ class Deliverying_Boys_subs(models.Model):
     order_time = models.TimeField((u"Order time"), auto_now_add=True)
     STATUS = [
         ('A', 'Active'),
-        ('I', 'Inactive'),
+        ('C', 'Completed'),
     ]
     status = models.CharField(
         max_length=20,

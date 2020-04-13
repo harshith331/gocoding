@@ -95,11 +95,11 @@ def SignUp(request):
         else:
             response['error_msg']['email'] = 'invalid email'
             return JsonResponse(response)
-        try:
-            r =  RegUser.objects.get(email=body['email'])
-            response['error_msg']['email'] = 'account with this email already exists.'
-        except  RegUser.DoesNotExist:
-            pass
+        # try:
+        #     r =  RegUser.objects.get(email=body['email'])
+        #     response['error_msg']['email'] = 'account with this email already exists.'
+        # except  RegUser.DoesNotExist:
+        #     pass
         if response['error_msg']['phone_no'] != '' or response['error_msg']['email'] != '':
             return JsonResponse(response)
         else:   
@@ -588,7 +588,8 @@ def vendor_assignment_sub(vendors, ar2, order_id, order_products, duration, days
             itemin = CategorizedProducts.objects.get(product_id=x).product_name
             total_orders.append(itemin)
             order_quantities.append(ar2[x])
-
+    print("selected vendor phone number is" + vmax.phone_no)
+    print("selected item is")
     print(total_orders)
     print(order_quantities)
     print(vmax.phone_no)
@@ -1017,7 +1018,7 @@ def delivery_boy_assignment(vendor_assigned_list, cells, cell_distance, user_lat
         firebase_admin.initialize_app(cred)
     db = firestore.client()
     deliveryBoy_list = list(Delivery_Boys.objects.filter(
-        city__iexact=city, status="A"))  # busy="true"
+        city__iexact=city, status="A",accepted_or_not=0))  # busy="true"
 
     # for boy in deliveryBoy_list:
         # doc_rf = db.collection(u'DeliveryBoyLocation').document(
@@ -1085,8 +1086,9 @@ def delivery_boy_assignment(vendor_assigned_list, cells, cell_distance, user_lat
         while True:
             firstmin = deliveryBoy_list[0]
             for i in range(0, len(deliveryBoy_list)):
-                if geodistance2(deliveryBoy_list[i].lat, deliveryBoy_list[i].long, farthest_cell.Cell_lat, farthest_cell.Cell_long) < geodistance2(firstmin.lat, firstmin.long, farthest_cell.Cell_lat, farthest_cell.Cell_long):
-                    firstmin = deliveryBoy_list[i]
+                if deliveryBoy_list[i].accepted_or_not==0:
+                    if geodistance2(deliveryBoy_list[i].lat, deliveryBoy_list[i].long, farthest_cell.Cell_lat, farthest_cell.Cell_long) < geodistance2(firstmin.lat, firstmin.long, farthest_cell.Cell_lat, farthest_cell.Cell_long):
+                        firstmin = deliveryBoy_list[i]
             deliveryBoy_list.remove(firstmin)
             val_cell = []
             val_name = []
@@ -1205,11 +1207,12 @@ def delivery_boy_assignment(vendor_assigned_list, cells, cell_distance, user_lat
                     break
                 min = 10000
                 for boy in deliveryBoy_list:
-                    d = geodistance2(
-                        boy.lat, boy.long, farthest_cell.Cell_lat, farthest_cell.Cell_long)
-                    if(d < min):
-                        min = d
-                        closestBoy = boy
+                    if boy.accepted_or_not==0:
+                        d = geodistance2(
+                            boy.lat, boy.long, farthest_cell.Cell_lat, farthest_cell.Cell_long)
+                        if(d < min):
+                            min = d
+                            closestBoy = boy
                 # print(cells)
                 # print(closestBoy)
                 # print("dist+min", dist+min)
@@ -1515,6 +1518,7 @@ def place_order(request):
 
 def subscribe_order(request):
     if request.method == 'POST':
+        print("request_successful")
         print(request.POST)
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
@@ -1539,6 +1543,7 @@ def subscribe_order(request):
             products = products | (1 << prodid)
 
         ord = products
+        print("ordered products are")
         print(ord)
         Subscribed_Orders.objects.create(
             sorder_id=sorder_id,
@@ -1558,6 +1563,8 @@ def subscribe_order(request):
         user_latitude = float(body['cust_lat'])
         user_longitude = float(body['cust_long'])
         cells_all = list((Cells.objects.filter(city__iexact=city)))
+        print("selected cells are")
+        print(cells_all)
         no = 0
         ord = products
         while ord != 0 and no < 2:
@@ -1634,21 +1641,21 @@ def subscribe_order2(request):
         print(sorders)
         sord = Subscribed_Orders.objects.get(sorder_id=sorder_id)
         city = body['city']
-        if (not len(firebase_admin._apps)):
-            cred = credentials.Certificate("serviceAccountKey.json")
-            firebase_admin.initialize_app(cred)
-        db = firestore.client()
+        # if (not len(firebase_admin._apps)):
+        #     cred = credentials.Certificate("serviceAccountKey.json")
+        #     firebase_admin.initialize_app(cred)
+        # db = firestore.client()
         deliveryBoy_list = list(Delivery_Boys.objects.filter(
-            city__iexact=city, status="A"))  # busy="true"
+            city__iexact=city, status="A", accepted_or_not=0))  # busy="true"
 
-        for boy in deliveryBoy_list:
-            doc_rf = db.collection(u'DeliveryBoyLocation').document(
-                u'{}'.format(boy.phone_no))
-            doc = doc_rf.get()
-            boy.lat = doc.to_dict()['geo_point'].latitude
-            boy.long = doc.to_dict()['geo_point'].longitude
-            print("boy lat long", boy.lat, boy.long)
-            boy.save()
+        # for boy in deliveryBoy_list:
+        #     doc_rf = db.collection(u'DeliveryBoyLocation').document(
+        #         u'{}'.format(boy.phone_no))
+        #     doc = doc_rf.get()
+        #     boy.lat = doc.to_dict()['geo_point'].latitude
+        #     boy.long = doc.to_dict()['geo_point'].longitude
+        #     print("boy lat long", boy.lat, boy.long)
+        #     boy.save()
         order_details = []
         for sorder in sorders:
             d = {
@@ -1676,11 +1683,12 @@ def subscribe_order2(request):
             if deliveryBoy_list == []:
                 return JsonResponse({'msg': 'no del boy available'})
             for boy in deliveryBoy_list:
-                d = (geodistance2(boy.lat, boy.long,
+                if deliveryBoy_list[i].accepted_or_not==0:
+                    d = (geodistance2(boy.lat, boy.long,
                                   far_vendor.vendor_lat, far_vendor.vendor_long))
-                if d < min:
-                    min = d
-                    del_boy = boy
+                    if d < min:
+                        min = d
+                        del_boy = boy
             print(del_boy)
             send_delivery_order(data, del_boy.phone_no)
             time.sleep(60)
@@ -1689,12 +1697,12 @@ def subscribe_order2(request):
                 data2 = {
                     'del_boy': str(del_boy.name)
                 }
-                response = beams_client.publish_to_users(
-                    user_ids=[str(sord.customer_phone)],
-                    publish_body={
-                        'fcm': data2
-                    },
-                )
+                # response = beams_client.publish_to_users(
+                #     user_ids=[str(sord.customer_phone)],
+                #     publish_body={
+                #         'fcm': data2
+                #     },
+                # )
                 break
             else:
                 deliveryBoy_list.remove(del_boy)
@@ -1709,12 +1717,12 @@ def subscribe_order2(request):
             sorder_id=sorder_id,
             #otp=otp
         )
-        response = beams_client.publish_to_users(
-            user_ids=phones,
-            publish_body={
-                'fcm': data2
-            },
-        )
+        # response = beams_client.publish_to_users(
+        #     user_ids=phones,
+        #     publish_body={
+        #         'fcm': data2
+        #     },
+        # )
         return JsonResponse(data2)
 
 
@@ -1725,14 +1733,14 @@ def save_address(request):
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
         print(body['phone_no'])
-        try:
-            regUser = RegUser.objects.get(phone_no=str(body['phone_no']).strip())
-            print (f'RegUser : {regUser}')
-        except:
-            return JsonResponse({
-                'success': 'false',
-                'err_msg': f'User with phone_no:{body["phone_no"]} does not exists...'
-            })  
+        # try:
+        #     regUser = RegUser.objects.get(phone_no=str(body['phone_no']).strip())
+        #     print (f'RegUser : {regUser}')
+        # except:
+        #     return JsonResponse({
+        #         'success': 'false',
+        #         'err_msg': f'User with phone_no:{body["phone_no"]} does not exists...'
+        #     })  
 
         # a = Addresses.objects.get(phone_no=regUser)
         # if str(a.category) == str(body["category"]).strip():
@@ -2154,28 +2162,125 @@ def get_customer_details(request):
         }
         return JsonResponse(data)
 
-def create_order(request):
-    if request.method == "POST":
-        import razorpay
-        client = razorpay.Client(auth=("rzp_test_0cbeOIhWnD1OsK", "9GYf6yXqIm82douIRinpdcvC"))
-        body = json.loads(request.body.decode('utf-8'))
-        DATA = {
-            'amount': int(body['order_amt']) * 100,
-            'currency': 'INR',
-            'receipt': f"orderReceipt_{uuid.uuid4()}"[:40],
-        }
-        response = client.order.create(data=DATA)
-
-        return JsonResponse({
-            'success': 'true',
-            'razorpay_response': response
-        })
-
-def save_razorpay(request):
+def delboy_history(request):
     if request.method == 'POST':
-        body = json.loads(request.body.decode('utf-8'))
-        print (f"Request Method Body : {body}")
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        print(body['del_phone'])
+        objs = Order_Items.objects.filter(delivery_boy_phone=Delivery_Boys.objects.get(phone_no=body['del_phone']),delivered=True)
+        order_id=[]
+        data=[]
+        for item in objs:
+           order_id.append(item.order_id)
+        order_id = unique(order_id)
+        for oid in order_id:
+            for obs in objs:
+                ords=Orders.objects.get(order_id=obs.order_id)
+                if obs.order_id ==oid:
+                    ven_ph=obs.vendor_phone
+                    ordr_id=obs.order_id
+                    ven_ph=unique(ven_ph)
+                    order=Orders.objects.get(order_id=obs.order_id)
+                    #customer location
+                    cust_lat=order.cust_lat
+                    cust_long=order.cust_long
+                    #vendor location
+                    vendor_det=[]
+                    for items in Order_Items.objects.filter(order_id=oid):
+                        vendr=Vendors.objects.get(phone_no=items.vendor_phone)
+                        vendor_lat=vendr.vendor_lat
+                        vendor_long=vendr.vendor_long
+                        vendor_det.append({
+                            'vendor_phno':items.vendor_phone,
+                            'vendor_lat':vendor_lat,
+                            'vendor_long':vendor_long
+                        })
+
+                    #checkpoint location
+                    checkpoint_lat=order.primary_vendor.vendor_lat
+                    checkpoint_long=order.primary_vendor.vendor_long
+                    locations=[]        
+                    if obs.delboy_type=='P':
+                        location={
+                            'vendor':vendor_det,
+                            'checkpoint':{
+                                'lat':checkpoint_lat,
+                                'long':checkpoint_long
+                            },
+                            'customer':{
+                                'lat':cust_lat,
+                                'long':cust_long
+                            }
+                        }
+                        locations.append(location)
+                    else:
+                        location={
+                            'vendor':vendor_det,
+                            'checkpoint':{
+                                'lat':checkpoint_lat,
+                                'long':checkpoint_long
+                            },
+                        }
+                        locations.append(location)
+                vendor_data={
+                    'vendor_phno':obs.vendor_phone,
+                    'locations':locations
+                }
+            if obs.delboy_type=='P':
+                oid_loc_data={
+                'order_id':oid,
+                'delboy_type':'P',
+                'date':ords.order_date,
+                'time':ords.order_time,
+                'locations':locations
+                }
+            else:
+                oid_loc_data={
+                'order_id':oid,
+                'delboy_type':'S',
+                'date':ords.order_date,
+                'time':ords.order_time,
+                'locations':locations
+                }
+            data.append(oid_loc_data)
+    return JsonResponse(data,safe=False)
+
+def delboy_history_sub(request):
+    if request.method == 'POST':
+        body_unicode = request.body.decode('utf-8')
+        body = json.loads(body_unicode)
+        print(body['del_phone'])
+        subs=Deliverying_Boys_subs.objects.filter(status='C',phone_no=Delivery_Boys.objects.get(phone_no=body['del_phone']))
+        print(subs)
+        sorder_ids=[]
+        for sub in subs:
+            sorder_ids.append(sub.sorder_id)
+        sorder_ids=unique(sorder_ids)
+        vendor_det=[]
+        for sorder_id in sorder_ids:
+            for items in Subscribed_Order_Items.objects.filter(sorder_id=sorder_id):
+                # vendor lat long #
+                vendor_lat=items.vendor_phone.vendor_lat
+                vendor_long=items.vendor_phone.vendor_long
+                vendor_det.append({
+                    'vendor_phone':items.vendor_phone.phone_no,
+                    'vendor_lat':vendor_lat,
+                    'vondoe_long':vendor_long,
+                })
+                #coustomer#
+                cust_lat=Subscribed_Orders.objects.get(sorder_id=sorder_id).cust_lat
+                cust_long=Subscribed_Orders.objects.get(sorder_id=sorder_id).cust_long
+
+            location={
+                'vendor':vendor_det,
+                'checkpoint':{
+                    'lat':checkpoint_lat,
+                    'long':checkpoint_long
+                },
+            }
+            locations.append(location)
+
+
         return JsonResponse({
-            'success': True,
-            'body'   : body
+            'check':"okay"
         })
