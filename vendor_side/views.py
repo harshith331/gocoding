@@ -537,7 +537,7 @@ def order_history(request):
                 prod = {
                     'prod_id': obj.product_id,
                     'prod_name': obj.product_name,
-                    'prod_quan': quant,
+                    #'prod_quan': quant,
                     'category_name': obj.under_category.categoryName,
                     'category_id': obj.under_category.categoryId,
                     'prod_price': obj.product_price,
