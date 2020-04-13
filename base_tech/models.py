@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+import datetime
 import uuid
 import json
 
@@ -162,13 +163,13 @@ class Subscribed_Orders(models.Model):
     pending_order = models.IntegerField(default=0)
     order_date = models.DateField(auto_now_add=True)
     order_time = models.TimeField(auto_now_add=True)
-    COMPLETTION_STATUS = [
+    COMPLETTION_STATUS =[
         ('C', 'Complete'),
-         ('I', 'Incomplete')
+        ('I', 'Incomplete')
      ]
     completion_status = models.CharField(max_length=20, choices=COMPLETTION_STATUS, default='C')
     end_date = models.DateField()
-
+    
 
 class Deliverying_Boys_subs(models.Model):
     phone_no = models.ForeignKey(

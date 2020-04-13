@@ -2188,12 +2188,12 @@ def delboy_history(request):
                     vendor_det=[]
                     for items in Order_Items.objects.filter(order_id=oid):
                         vendr=Vendors.objects.get(phone_no=items.vendor_phone)
-                        vendor_lat=vendr.vendor_lat
-                        vendor_long=vendr.vendor_long
+                        vendor_lat=vendr.cell.Cell_lat
+                        vendor_long=vendr.cell.Cell_long
                         vendor_det.append({
                             'vendor_phno':items.vendor_phone,
-                            'vendor_lat':vendor_lat,
-                            'vendor_long':vendor_long
+                            'cell_lat':vendor_lat,
+                            'cell_long':vendor_long
                         })
 
                     #checkpoint location
@@ -2249,6 +2249,7 @@ def delboy_history_sub(request):
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
+
         subs=Deliverying_Boys_subs.objects.filter(status='C',phone_no=Delivery_Boys.objects.get(phone_no=body['del_phone']))
         sorder_ids=[]
         for sub in subs:
@@ -2259,15 +2260,17 @@ def delboy_history_sub(request):
         locations=[]
         for sorder_id in sorder_ids:
             for items in Subscribed_Order_Items.objects.filter(sorder_id=sorder_id):
+                print(sorder_id)
                 # vendor lat long #
-                vendor_lat=items.vendor_phone.vendor_lat
-                vendor_long=items.vendor_phone.vendor_long
+                vendor_lat=items.vendor_phone.cell.Cell_lat
+                vendor_long=items.vendor_phone.cell.Cell_lat
                 vendor_det.append({
                     'vendor_phone':items.vendor_phone.phone_no,
-                    'vendor_lat':vendor_lat,
-                    'vondoe_long':vendor_long,
+                    'cell_lat':vendor_lat,
+                    'cell_long':vendor_long,
                 })
                 #coustomer#
+                
                 cust_lat=Subscribed_Orders.objects.get(sorder_id=sorder_id).cust_lat
                 cust_long=Subscribed_Orders.objects.get(sorder_id=sorder_id).cust_long
 

@@ -20,3 +20,4 @@ class prev_orders(models.Model):
         ('A', 'Active')
     )
     order_status = models.CharField(max_length=50, choices=ORDER_STATUS, default='A')
+    quantity = models.IntegerField(default=0)
