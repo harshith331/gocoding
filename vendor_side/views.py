@@ -1215,7 +1215,7 @@ def order_ongoing_alt(request):
             items = []
             for product in myorders.filter(order_id=oid):
                 obj = CategorizedProducts.objects.get(product_id=product.product_id)
-                prod = Order_Items.objects.get(product_id=product.product_id)
+                prod = Order_Items.objects.get(product_id=product.product_id,vendor_phone=body['vendor_phone'],order_id=oid)
                 # if product.status == "A":
                 #     check = True
                 # else:
