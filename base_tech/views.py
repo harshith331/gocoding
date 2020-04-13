@@ -2249,14 +2249,14 @@ def delboy_history_sub(request):
     if request.method == 'POST':
         body_unicode = request.body.decode('utf-8')
         body = json.loads(body_unicode)
-        print(body['del_phone'])
         subs=Deliverying_Boys_subs.objects.filter(status='C',phone_no=Delivery_Boys.objects.get(phone_no=body['del_phone']))
-        print(subs)
         sorder_ids=[]
         for sub in subs:
             sorder_ids.append(sub.sorder_id)
         sorder_ids=unique(sorder_ids)
         vendor_det=[]
+        data=[]
+        locations=[]
         for sorder_id in sorder_ids:
             for items in Subscribed_Order_Items.objects.filter(sorder_id=sorder_id):
                 # vendor lat long #
@@ -2273,14 +2273,17 @@ def delboy_history_sub(request):
 
             location={
                 'vendor':vendor_det,
-                'checkpoint':{
-                    'lat':checkpoint_lat,
-                    'long':checkpoint_long
+                'customer':{
+                    'lat':cust_lat,
+                    'long':cust_long
                 },
             }
             locations.append(location)
 
-
-        return JsonResponse({
-            'check':"okay"
+        data.append({
+            'sorder_id':sorder_id,
+            'date':Subscribed_Orders.objects.get(sorder_id=sorder_id).order_date,
+            'time':Subscribed_Orders.objects.get(sorder_id=sorder_id).order_time,
+            'locations':locations
         })
+    return JsonResponse(data,safe=False)
