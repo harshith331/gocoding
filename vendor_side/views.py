@@ -1198,15 +1198,21 @@ def order_ongoing_alt(request):
         
         for oid in order_id:
             ordr=Orders.objects.get(order_id=oid)
-            del_boy = Order_Items.objects.get(vendor_phone=body['vendor_phone'], order_id=oid)
+            try:
+                del_boy = Order_Items.objects.get(vendor_phone=body['vendor_phone'], order_id=oid)
+                del_phn=del_boy.delivery_boy_phone.phone_no
+                otp=del_boy.otp
+            except:
+                del_phn=''
+                otp=int()
             #delivery_boy = del_boy_orders.delivery_boy_phone
             d = {}
             d["order_id"] = oid
             d["time"] = ordr.order_time
             d["date"] = ordr.order_date
             d["price"] = ordr.price
-            d["delivery_boy_phone"] = del_boy.delivery_boy_phone.phone_no
-            d['otp'] = del_boy.otp
+            d["delivery_boy_phone"] = del_phn
+            d['otp'] = otp
             # if len(products) == 1:
             #     imageurl = CategorizedProducts.objects.get(product_id=0).product_imagepath.url
             # else:
@@ -1242,18 +1248,26 @@ def order_ongoing_alt(request):
         for item in mysorders:
            sorder_id.append(item.sorder_id)
         sorder_id = unique(sorder_id)
+        #print(sorder_id)
         for oid in sorder_id:
-            ordr=Subscribed_Orders.objects.get(sorder_id=oid,order_date=date.today())
-            del_boy = Deliverying_Boys_subs.objects.get(sorder_id=oid,order_date=date.today()).phone_no
+            ordr=Subscribed_Orders.objects.get(sorder_id=oid)
+            try:
+                del_boy = Deliverying_Boys_subs.objects.get(sorder_id=oid,order_date=date.today()).phone_no
+                del_phone=del_boy.phone_no
+            except:
+                del_phone=''
             d = {}
             d["sorder_id"] = oid
             d["time"] = ordr.order_time
             d["date"] = ordr.order_date
-            d["delivery_boy_phone"] = del_boy.phone_no
+            d["delivery_boy_phone"] = del_phone
             products = list(prev_orders.objects.filter(vendor_phone=body['vendor_phone'], order_id=oid))
-            item_otp = Vendors_subs.objects.get(phone_no=body['vendor_phone'], sorder_id=oid,order_date=date.today())
-            otp = items_otp[0].otp
-            d['otp'] = otp
+            try:
+                item_otp = Vendors_subs.objects.get(phone_no=body['vendor_phone'], sorder_id=oid,order_date=date.today())
+                otp = items_otp[0].otp
+                d['otp'] = otp
+            except:
+                d['otp'] = int()
             # if len(products) == 1:
             #     imageurl = CategorizedProducts.objects.get(
             #         product_id=0).product_imagepath.url
@@ -1264,7 +1278,7 @@ def order_ongoing_alt(request):
             items = []
             for product in products:
                 obj = CategorizedProducts.objects.get(product_id=product.product_id)
-                prod = Subscribed_Order_Items.objects.filter(product_id=product.product_id,sorder_id=oid).first()
+                prod = Subscribed_Order_Items.objects.filter(product_id=product.product_id,sorder_id=oid,vendor_phone=Vendors.objects.get(phone_no=body['vendor_phone'])).first()
                 prod = {
                     'prod_id': obj.product_id,
                     'prod_name': obj.product_name,
